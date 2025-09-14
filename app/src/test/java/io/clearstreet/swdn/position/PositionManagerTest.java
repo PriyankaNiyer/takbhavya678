@@ -125,6 +125,26 @@ class PositionManagerTest {
     }
 
     @Test
+    void cancelTradeNonExistingTrades() {
+        // Given
+        PositionManager positionManager = getPositionManager();
+
+        // When
+        Assertions.assertTrue(positionManager.enterTrade(
+                new Trade("trade1", JP_MORGAN_ACCOUNT_1.accountName(), IBM_STOCK.instrumentName(), 100.0,
+                        TradeSide.BUY, TradeType.NEW,
+                        50.0)));
+        Assertions.assertFalse(positionManager.enterTrade(
+                new Trade("trade2", JP_MORGAN_ACCOUNT_1.accountName(), IBM_STOCK.instrumentName(), 100.0,
+                        TradeSide.BUY, TradeType.CANCEL,
+                        50.0)));
+
+        // Then
+        Assertions.assertEquals(1,
+                positionManager.getPositionsForAccount(JP_MORGAN_ACCOUNT_1.accountName()).size());
+    }
+
+    @Test
     void amendTradePrice() {
         // Given
         PositionManager positionManager = getPositionManager();
@@ -147,6 +167,31 @@ class PositionManagerTest {
                 .getFirst();
         Assertions.assertEquals(5100.0, position.initialValue(), DELTA);
         Assertions.assertEquals(100.0, position.quantity(), DELTA);
+    }
+
+    @Test
+    void amendTradeQuantity() {
+        // Given
+        PositionManager positionManager = getPositionManager();
+
+        // When
+        Assertions.assertTrue(positionManager.enterTrade(
+                new Trade("trade1", JP_MORGAN_ACCOUNT_1.accountName(), IBM_STOCK.instrumentName(), 100.0,
+                        TradeSide.BUY, TradeType.NEW,
+                        50.0)));
+        Assertions.assertTrue(positionManager.enterTrade(
+                new Trade("trade1", JP_MORGAN_ACCOUNT_1.accountName(), IBM_STOCK.instrumentName(), 1000.0,
+                        TradeSide.BUY, TradeType.REPLACE,
+                        50.0)));
+
+        // Then
+        Assertions.assertEquals(1,
+                positionManager.getPositionsForAccount(JP_MORGAN_ACCOUNT_1.accountName()).size());
+
+        Position position = positionManager.getPositionsForAccount(JP_MORGAN_ACCOUNT_1.accountName())
+                .getFirst();
+        Assertions.assertEquals(50000.0, position.initialValue(), DELTA);
+        Assertions.assertEquals(1000.0, position.quantity(), DELTA);
     }
 
     @Test

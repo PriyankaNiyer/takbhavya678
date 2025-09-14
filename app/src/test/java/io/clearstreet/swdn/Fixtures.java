@@ -24,4 +24,7 @@ public class Fixtures {
 
   public static final Position JP_MORGAN_POSITION_3 = new Position(
       JP_MORGAN_ACCOUNT_2.accountName(), TSLA_STOCK.instrumentName(), -100.0, -6000.0);
+
+  public static final Position JP_MORGAN_POSITION_4 = new Position(
+            JP_MORGAN_ACCOUNT_1.accountName(), TSLA_STOCK.instrumentName(), -100.0, -6000.0);
 }

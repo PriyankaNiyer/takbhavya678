@@ -1,13 +1,5 @@
 package io.clearstreet.swdn.risk;
 
-import static io.clearstreet.swdn.Fixtures.IBM_STOCK;
-import static io.clearstreet.swdn.Fixtures.JP_MORGAN;
-import static io.clearstreet.swdn.Fixtures.JP_MORGAN_ACCOUNT_1;
-import static io.clearstreet.swdn.Fixtures.JP_MORGAN_POSITION_1;
-import static io.clearstreet.swdn.Fixtures.JP_MORGAN_POSITION_2;
-import static io.clearstreet.swdn.Fixtures.JP_MORGAN_POSITION_3;
-import static io.clearstreet.swdn.Fixtures.TSLA_STOCK;
-
 import io.clearstreet.swdn.model.Instrument;
 import io.clearstreet.swdn.model.InstrumentType;
 import io.clearstreet.swdn.model.Position;
@@ -22,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import static io.clearstreet.swdn.Fixtures.*;
 
 @ExtendWith(MockitoExtension.class)
 class RiskCalculatorTest {
@@ -54,6 +48,26 @@ class RiskCalculatorTest {
     }
 
     @Test
+    void calculateAccountPnlForMultiplePositionsOnSameAccount() {
+        // Given
+        RiskCalculator riskCalculator = new RiskCalculator(positionManager, priceRepository,
+                referenceDataRepository);
+        Mockito.when(positionManager.getPositionsForAccount(JP_MORGAN_ACCOUNT_1.accountName()))
+                .thenReturn(List.of(JP_MORGAN_POSITION_1,JP_MORGAN_POSITION_4));
+        Mockito.when(priceRepository.getPrice(IBM_STOCK.instrumentName()))
+                .thenReturn(Optional.of(100.0));
+        Mockito.when(priceRepository.getPrice(TSLA_STOCK.instrumentName()))
+                .thenReturn(Optional.of(100.0));
+
+        // When
+        double accountPnl = riskCalculator.calculateAccountPnl(JP_MORGAN_ACCOUNT_1.accountName());
+
+        // Then
+        double expectedPnl = 1000.0;
+        Assertions.assertEquals(expectedPnl, accountPnl, DELTA);
+    }
+
+    @Test
     void calculateMemberPnl() {
         // Given
         RiskCalculator riskCalculator = new RiskCalculator(positionManager, priceRepository,
@@ -76,7 +90,7 @@ class RiskCalculatorTest {
     }
 
     @Test
-    void calculateMemberMarketRisk() {
+    void calculateMemberMarketRiskStockAndOption() {
 
         RiskCalculator riskCalculator = new RiskCalculator(positionManager, priceRepository, referenceDataRepository);
 
